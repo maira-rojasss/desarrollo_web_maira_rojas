@@ -11,7 +11,7 @@ Prototipo funcional para el registro de miembros y actividades del departamento,
 ## Tecnologías utilizadas
 - **HTML5:** Estructura semántica.
 - **CSS3:** Flexbox, Grid y diseño responsivo.
-- **JavaScript (Vanilla):** Lógica de negocio y manipulación del DOM.
+- **JavaScript:** Lógica de negocio y manipulación del DOM.
 
 ## Estructura de archivos
 - `index.html`: Panel principal de navegación.
