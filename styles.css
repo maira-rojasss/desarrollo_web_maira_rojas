@@ -1,0 +1,158 @@
+/* Estilos Base y Layout */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+header h1 {
+    margin: 0;
+    font-weight: 800;
+}
+
+main {
+    max-width: 650px;
+    width: 90%;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+/* Navegación y Botones */
+.menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn {
+    background: #fff;
+    color: #2c3e50;
+    border: 2px solid #764ba2;
+    padding: 20px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background: #764ba2;
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* Formularios */
+section {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+button {
+    background: #764ba2;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #5a377d;
+}
+
+/* Listados y Métricas */
+.miembro-card {
+    border: 1px solid #eee;
+    border-left: 6px solid #764ba2;
+    background: #fdfdfd;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.bar-bg {
+    background: #f1f2f6;
+    height: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.bar-fill {
+    background: #764ba2;
+    height: 100%;
+}
+
+.bar-fill-act {
+    background: #9b59b6;
+    height: 100%;
+}
+
+/* Utilidades */
+nav a[href="index.html"] {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 20px;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    color: #764ba2;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+#mensaje,
+#mensajeAct {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #000;
+    display: block;
+    min-height: 1.2em;
+}
+
+@media (max-width: 500px) {
+    .menu {
+        grid-template-columns: 1fr;
+    }
+}

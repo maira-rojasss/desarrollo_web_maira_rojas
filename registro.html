@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Miembros - DCC</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Registro de Miembros</h1>
+    </header>
+
+    <main>
+        <form id="formMiembro">
+            <section>
+                <label for="rut">RUT:</label>
+                <input type="text" id="rut">
+            </section>
+
+            <section>
+                <label for="nombre">Nombre completo:</label>
+                <input type="text" id="nombre">
+            </section>
+
+            <section>
+                <label for="email">Email de contacto:</label>
+                <input type="text" id="email">
+            </section>
+
+            <section>
+                <label for="tipo">Tipo de miembro:</label>
+                <select id="tipo" onchange="mostrarCamposExtra()">
+                    <option value="">Seleccione</option>
+                    <option value="estudiante">Estudiante</option>
+                    <option value="funcionario">Funcionario</option>
+                    <option value="academico">Académico</option>
+                </select>
+            </section>
+
+            <div id="camposExtra"></div>
+
+            <button type="submit">Registrar Miembro</button>
+        </form>
+
+        <p id="mensaje" style="font-weight: bold;"></p>
+
+        <nav>
+            <br>
+            <a href="index.html">Volver al inicio</a>
+        </nav>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Actividades - DCC</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Registrar Actividad</h1>
+    </header>
+
+    <main>
+        <form id="formActividad">
+            <section>
+                <label for="nombreAct">Nombre de la actividad:</label>
+                <input type="text" id="nombreAct">
+            </section>
+
+            <section>
+                <label for="tipoAct">Tipo:</label>
+                <select id="tipoAct">
+                    <option value="">Seleccione</option>
+                    <option value="deporte">Deporte</option>
+                    <option value="artistica">Artística</option>
+                    <option value="tecnologica">Tecnológica</option>
+                    <option value="social">Social</option>
+                    <option value="recreativa">Recreativa</option>
+
+                </select>
+            </section>
+
+            <section>
+                <label>Días de la actividad:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="dias" value="Lunes"> Lunes</label>
+                    <label><input type="checkbox" name="dias" value="Martes"> Martes</label>
+                    <label><input type="checkbox" name="dias" value="Miércoles"> Miércoles</label>
+                    <label><input type="checkbox" name="dias" value="Jueves"> Jueves</label>
+                    <label><input type="checkbox" name="dias" value="Viernes"> Viernes</label>
+                    <label><input type="checkbox" name="dias" value="Sábado"> Sábado</label>
+                    <label><input type="checkbox" name="dias" value="Domingo"> Domingo</label>
+                </div>
+            </section>
+
+            <section class="hora-container">
+                <div>
+                    <label for="horaInicio">Hora Inicio:</label>
+                    <input type="time" id="horaInicio">
+                </div>
+                <div>
+                    <label for="horaFin">Hora Fin:</label>
+                    <input type="time" id="horaFin">
+                </div>
+            </section>
+
+            <section>
+                <label for="archivo">Archivo (foto/video):</label>
+                <input type="file" id="archivo">
+            </section>
+
+            <section>
+                <label for="link">Enlace a contenido propio (opcional):</label>
+                <input type="text" id="link">
+            </section>
+
+            <button type="submit">Registrar actividad</button>
+        </form>
+
+        <p id="mensajeAct" style="font-weight: bold;"></p>
+
+        <nav>
+            <a href="index.html">Volver al inicio</a>
+        </nav>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
