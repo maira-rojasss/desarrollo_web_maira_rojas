@@ -264,9 +264,14 @@ def registro():
                     # Procesar fotos
                     if not errores:
                         archivos = request.files.getlist("archivo")
-                        for f in archivos:
-                            if f and f.filename:
+                        archivos_validos = [f for f in archivos if f and f.filename.strip() != ""]
+                        if len(archivos_validos) == 0:
+                            errores.append("Debe subir al menos una imagen.")
+                            session.rollback()
+                        else:
+                            for f in archivos_validos:
                                 n_orig, n_srv = guardar_archivo(f)
+                                
                                 if n_orig is None:
                                     errores.append(f"El archivo '{f.filename}' no es una imagen válida (JPG/PNG/GIF/WEBP).")
                                     session.rollback()
