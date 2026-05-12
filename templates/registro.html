@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Registro de Miembros - DCC{% endblock %}
+{% block header %}Registro de Miembros{% endblock %}
+
+{% block content %}
+{% if errores %}
+<div class="errores">
+    <strong>Por favor corrija los siguientes errores:</strong>
+    <ul>
+        {% for e in errores %}
+        <li>{{ e }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<form id="formMiembro" method="POST" enctype="multipart/form-data" action="{{ url_for('registro') }}" novalidate>
+
+    <!-- ── Datos del miembro ─────────────────────────────────────────── -->
+    <section>
+        <label for="rut">RUT:</label>
+        <input type="text" id="rut" name="rut" value="{{ form_data.get('rut', '') }}" placeholder="12345678-9">
+        <span class="error-campo" id="err-rut"></span>
+    </section>
+
+    <section>
+        <label for="nombre">Nombre completo:</label>
+        <input type="text" id="nombre" name="nombre" value="{{ form_data.get('nombre', '') }}">
+        <span class="error-campo" id="err-nombre"></span>
+    </section>
+
+    <section>
+        <label for="email">Email de contacto:</label>
+        <input type="text" id="email" name="email" value="{{ form_data.get('email', '') }}">
+        <span class="error-campo" id="err-email"></span>
+    </section>
+
+    <section>
+        <label for="tipo">Tipo de miembro:</label>
+        <select id="tipo" name="tipo" onchange="mostrarCamposExtra()">
+            <option value="">Seleccione</option>
+            <option value="estudiante" {% if form_data.get('tipo')=='estudiante' %}selected{% endif %}>Estudiante
+            </option>
+            <option value="funcionario" {% if form_data.get('tipo')=='funcionario' %}selected{% endif %}>Funcionario
+            </option>
+            <option value="academico" {% if form_data.get('tipo')=='academico' %}selected{% endif %}>Académico</option>
+        </select>
+        <span class="error-campo" id="err-tipo"></span>
+    </section>
+
+    <div id="camposExtra">
+        {# Si hubo error y hay datos guardados, repoblar los campos extra #}
+        {% set tipo_prev = form_data.get('tipo', '') %}
+        {% if tipo_prev == 'estudiante' %}
+        <section>
+            <label>Nivel:</label>
+            <select id="nivelEstudiante" name="nivelEstudiante">
+                <option value="">Seleccione</option>
+                <option value="pregrado" {% if form_data.get('nivel')=='pregrado' %}selected{% endif %}>Pregrado
+                </option>
+                <option value="postgrado" {% if form_data.get('nivel')=='postgrado' %}selected{% endif %}>Postgrado
+                </option>
+            </select>
+        </section>
+        <section>
+            <label>Departamento:</label>
+            <input type="text" id="departamento" name="departamento" value="{{ form_data.get('detalle', '') }}">
+        </section>
+        {% elif tipo_prev == 'funcionario' %}
+        <section>
+            <label>Unidad:</label>
+            <input type="text" id="unidad" name="unidad" value="{{ form_data.get('detalle', '') }}">
+        </section>
+        {% elif tipo_prev == 'academico' %}
+        <section>
+            <label>Departamento:</label>
+            <input type="text" id="departamentoAcademico" name="departamentoAcademico"
+                value="{{ form_data.get('detalle', '') }}">
+        </section>
+        {% endif %}
+    </div>
+
+    <!-- ── Actividades ───────────────────────────────────────────────── -->
+    <h3>Actividades</h3>
+    <div id="contenedor-actividades">
+        <div class="actividad-bloque" id="act-0">
+            <h4>Actividad 1</h4>
+
+            <section>
+                <label>Nombre de la actividad:</label>
+                <input type="text" name="nombreAct" placeholder="Nombre">
+                <span class="error-campo act-err-nombre"></span>
+            </section>
+
+            <section>
+                <label>Tipo:</label>
+                <select name="tipoAct">
+                    <option value="">Seleccione</option>
+                    <option value="deportiva">Deportiva</option>
+                    <option value="artistica">Artística</option>
+                    <option value="tecnologica">Tecnológica</option>
+                    <option value="social">Social</option>
+                    <option value="recreativa">Recreativa</option>
+                </select>
+            </section>
+
+            <section>
+                <label>Días:</label>
+                <div class="checkbox-group">
+                    {% for dia in ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'] %}
+                    <label><input type="checkbox" class="dia-check" value="{{ dia }}"> {{ dia }}</label>
+                    {% endfor %}
+                </div>
+                <!-- campo oculto donde JS escribe el JSON de días -->
+                <input type="hidden" name="diasAct" class="dias-json">
+                <span class="error-campo act-err-dias"></span>
+            </section>
+
+            <section class="hora-container">
+                <div>
+                    <label>Hora inicio:</label>
+                    <input type="time" name="horaInicio">
+                </div>
+                <div>
+                    <label>Hora fin:</label>
+                    <input type="time" name="horaFin">
+                </div>
+            </section>
+            <span class="error-campo act-err-hora"></span>
+
+            <section>
+                <label>Enlace (opcional):</label>
+                <input type="text" name="linkAct" placeholder="https://...">
+            </section>
+        </div>
+    </div>
+
+    <button type="button" id="btnAgregarAct" onclick="agregarActividad()">+ Agregar otra actividad</button>
+
+    <!-- ── Fotos ─────────────────────────────────────────────────────── -->
+    <h3>Fotos / Archivos</h3>
+    <section>
+        <label>Seleccione imagen(es) (JPG, PNG, GIF, WEBP):</label>
+        <input type="file" name="archivo" accept="image/*" multiple>
+    </section>
+
+    <button type="submit" id="btnSubmit">Registrar Miembro</button>
+</form>
+
+<p id="mensaje" style="font-weight:bold;"></p>
+
+<nav>
+    <a href="{{ url_for('index') }}">Volver al inicio</a>
+</nav>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ miembro.nombre }} - DCC{% endblock %}
+{% block header %}Detalle del Miembro{% endblock %}
+
+{% block content %}
+<div class="detalle-container">
+
+    <!-- Datos personales -->
+    <section class="detalle-seccion">
+        <h2>{{ miembro.nombre }}
+            <span class="badge badge-{{ miembro.tipo }}">{{ miembro.tipo | capitalize }}</span>
+        </h2>
+        <table class="tabla-detalle">
+            <tr>
+                <th>RUT</th>
+                <td>{{ miembro.rut }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ miembro.email }}</td>
+            </tr>
+            {% if miembro.nivel %}
+            <tr>
+                <th>Nivel</th>
+                <td>{{ miembro.nivel | capitalize }}</td>
+            </tr>
+            {% endif %}
+            {% if miembro.detalle %}
+            <tr>
+                <th>{% if miembro.tipo == 'funcionario' %}Unidad{% else %}Departamento{% endif %}</th>
+                <td>{{ miembro.detalle }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Fecha registro</th>
+                <td>{{ miembro.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</td>
+            </tr>
+        </table>
+    </section>
+
+    <!-- Fotos -->
+    {% if fotos %}
+    <section class="detalle-seccion">
+        <h3>Fotos</h3>
+        <div class="galeria">
+            {% for f in fotos %}
+            <div class="foto-item">
+                <img src="{{ url_for('static', filename='uploads/' ~ f.nombre_srv) }}" alt="{{ f.nombre_orig }}"
+                    title="{{ f.nombre_orig }}">
+                <small>{{ f.nombre_orig }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Actividades -->
+    <section class="detalle-seccion">
+        <h3>Actividades</h3>
+        {% if actividades %}
+        {% for a in actividades %}
+        <div class="miembro-card">
+            <strong>{{ a.nombre }}</strong>
+            <span class="badge badge-act">{{ a.tipo | capitalize }}</span><br>
+            <small>Días: {{ a.dias }}</small><br>
+            <small>Horario: {{ a.horario }}</small><br>
+            {% if a.link %}
+            <small>
+                <a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.link }}</a>
+            </small>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>Este miembro no tiene actividades registradas.</p>
+        {% endif %}
+    </section>
+
+</div>
+
+<nav>
+    <a href="{{ url_for('listado') }}">&#8592; Volver al listado</a>
+    &nbsp;|&nbsp;
+    <a href="{{ url_for('index') }}">Inicio</a>
+</nav>
+{% endblock %}

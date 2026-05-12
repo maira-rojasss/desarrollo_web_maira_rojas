@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Sistema DCC{% endblock %}
+{% block header %}Sistema de Actividades DCC{% endblock %}
+
+{% block content %}
+{% if mensaje %}
+<p class="msg-ok">{{ mensaje }}</p>
+{% endif %}
+
+<section>
+    <h2>Menú principal</h2>
+    <nav class="menu">
+        <a href="{{ url_for('registro') }}" class="btn">Registrar miembro y actividades</a>
+        <a href="{{ url_for('listado') }}" class="btn">Ver listado de miembros</a>
+        <a href="#estadisticas" class="btn btn-disabled">Estadísticas <small>(próximamente)</small></a>
+    </nav>
+</section>
+
+<section id="ultimos">
+    <h2>Últimos 5 miembros agregados</h2>
+    {% if ultimos %}
+    {% for m in ultimos %}
+    <div class="miembro-card">
+        <strong>{{ m.nombre }}</strong>
+        <span class="badge badge-{{ m.tipo }}">{{ m.tipo | capitalize }}</span><br>
+        <small>{{ m.rut }} | {{ m.email }}</small><br>
+        {% if m.nivel %}
+        <small>{{ m.nivel | capitalize }}
+            {% if m.detalle %} | {{ m.detalle }}{% endif %}
+        </small><br>
+        {% elif m.detalle %}
+        <small>{{ m.detalle }}</small><br>
+        {% endif %}
+        <small class="fecha-reg">Registrado: {{ m.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</small>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No hay miembros registrados aún.</p>
+    {% endif %}
+</section>
+{% endblock %}
