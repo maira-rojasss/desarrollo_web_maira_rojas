@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS `tarea2`.`miembro` (
   `tipo` VARCHAR(20) NOT NULL COMMENT 'estudiante | funcionario | academico',
   `nivel` VARCHAR(20) NULL DEFAULT NULL COMMENT 'pregrado | postgrado (solo estudiantes)',
   `detalle` VARCHAR(200) NULL DEFAULT NULL COMMENT 'departamento o unidad segun tipo',
+  `comuna`  VARCHAR(100) NULL DEFAULT NULL COMMENT 'comuna de residencia del miembro',
   `fecha_registro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`),
@@ -76,6 +77,26 @@ CREATE TABLE IF NOT EXISTS `tarea2`.`foto` (
     ON DELETE CASCADE
     ON UPDATE CASCADE
 )
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table `tarea2`.`comentario`
+-- -----------------------------------------------------
+
+
+CREATE TABLE IF NOT EXISTS `tarea2`.`comentario` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(80) NOT NULL,
+  `texto` VARCHAR(300) NOT NULL,
+  `fecha` TIMESTAMP NOT NULL,
+  `actividad_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_comentario_actividad1_idx` (`actividad_id` ASC),
+  CONSTRAINT `fk_comentario_actividad1`
+    FOREIGN KEY (`actividad_id`)
+    REFERENCES `tarea2`.`actividad` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 SET SQL_MODE=@OLD_SQL_MODE;

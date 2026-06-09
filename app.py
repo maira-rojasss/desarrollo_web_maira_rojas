@@ -1,11 +1,12 @@
 import os
 import re
+import json
 import uuid
 import filetype
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
-from sqlalchemy import create_engine, String, Integer, Text, DateTime, ForeignKey, select
+from sqlalchemy import create_engine, String, Integer, Text, DateTime, ForeignKey, select, func
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, Session, relationship
 from typing import Optional, List
 
@@ -41,6 +42,7 @@ class Miembro(Base):
     tipo:           Mapped[str]           = mapped_column(String(20),  nullable=False)   # estudiante/funcionario/academico
     nivel:          Mapped[Optional[str]] = mapped_column(String(20),  nullable=True)    # solo estudiante
     detalle:        Mapped[Optional[str]] = mapped_column(String(200), nullable=True)    # departamento/unidad
+    comuna:         Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     fecha_registro: Mapped[datetime]      = mapped_column(DateTime,    default=datetime.now)
 
     actividades: Mapped[List["Actividad"]] = relationship("Actividad", back_populates="miembro", cascade="all, delete-orphan")
@@ -59,6 +61,7 @@ class Actividad(Base):
     link:     Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
 
     miembro: Mapped["Miembro"] = relationship("Miembro", back_populates="actividades")
+    comentarios: Mapped[List["Comentario"]] = relationship("Comentario", back_populates="actividad", cascade="all, delete-orphan")
 
 
 class Foto(Base):
@@ -70,6 +73,18 @@ class Foto(Base):
     nombre_srv:  Mapped[str] = mapped_column(String(300), nullable=False)   # nombre guardado en servidor
 
     miembro: Mapped["Miembro"] = relationship("Miembro", back_populates="fotos")
+
+class Comentario(Base):
+    __tablename__ = "comentario"
+
+    id:           Mapped[int]      = mapped_column(Integer, primary_key=True, autoincrement=True)
+    nombre:       Mapped[str]      = mapped_column(String(80),  nullable=False)
+    texto:        Mapped[str]      = mapped_column(String(300), nullable=False)
+    fecha:        Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    actividad_id: Mapped[int]      = mapped_column(Integer, ForeignKey("actividad.id"), nullable=False)
+
+    actividad: Mapped["Actividad"] = relationship("Actividad", back_populates="comentarios")
+
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -118,7 +133,7 @@ def guardar_archivo(file_obj) -> tuple[str, str] | tuple[None, None]:
     return nombre_orig, nombre_srv
 
 
-def errores_miembro(rut, nombre, email, tipo, nivel, detalle) -> list[str]:
+def errores_miembro(rut, nombre, email, tipo, nivel, detalle, comuna) -> list[str]:
     """Validación server-side del formulario de miembro."""
     errores = []
     if not rut.strip():
@@ -142,6 +157,8 @@ def errores_miembro(rut, nombre, email, tipo, nivel, detalle) -> list[str]:
     elif tipo == "academico":
         if not detalle.strip():
             errores.append("El departamento del académico es obligatorio.")
+    if not comuna.strip():
+        errores.append("La comuna es obligatoria.")
     return errores
 
 
@@ -163,6 +180,10 @@ def errores_actividad(nombre, tipo, dias, inicio, fin) -> list[str]:
     elif inicio >= fin:
         errores.append("La hora de inicio debe ser anterior a la hora de fin.")
     return errores
+
+def sanitizar_texto(texto: str) -> str:
+    """Escapa caracteres peligrosos para prevenir XSS/inyección."""
+    return texto.strip()
 
 
 # ── Rutas ──────────────────────────────────────────────────────────────────────
@@ -198,12 +219,13 @@ def registro():
         detalle = (request.form.get("departamento", "")
                    or request.form.get("departamentoAcademico", "")
                    or request.form.get("unidad", "")).strip()
+        comuna  = request.form.get("comuna", "").strip()
 
         form_data = {"rut": rut, "nombre": nombre, "email": email,
-                     "tipo": tipo, "nivel": nivel, "detalle": detalle}
+                     "tipo": tipo, "nivel": nivel, "detalle": detalle, "comuna": comuna}
 
         # Validar servidor
-        errores = errores_miembro(rut, nombre, email, tipo, nivel, detalle)
+        errores = errores_miembro(rut, nombre, email, tipo, nivel, detalle, comuna)
 
         if not errores:
             session = get_session()
@@ -217,6 +239,8 @@ def registro():
                         rut=rut, nombre=nombre, email=email,
                         tipo=tipo, nivel=nivel or None,
                         detalle=detalle or None,
+                        comuna=comuna or None,
+
                         fecha_registro=datetime.now()
                     )
                     session.add(miembro)
@@ -346,6 +370,162 @@ def detalle_miembro(id_miembro: int):
                            miembro=miembro,
                            actividades=actividades,
                            fotos=fotos)
+
+
+
+# ── Detalle de Actividad ────────────────────────────────────────────────────────
+@app.route("/actividad/<int:id_actividad>")
+def detalle_actividad(id_actividad: int):
+    session = get_session()
+    try:
+        actividad = session.get(Actividad, id_actividad)
+        if actividad is None:
+            flash("Actividad no encontrada.")
+            return redirect(url_for("index"))
+        miembro = actividad.miembro
+    finally:
+        session.close()
+    return render_template("actividad.html", actividad=actividad, miembro=miembro)
+
+
+# ── API: Comentarios ────────────────────────────────────────────────────────────
+
+@app.route("/api/comentarios/<int:id_actividad>")
+def api_comentarios(id_actividad: int):
+    """Devuelve los comentarios de una actividad en JSON."""
+    session = get_session()
+    try:
+        actividad = session.get(Actividad, id_actividad)
+        if actividad is None:
+            return jsonify({"error": "Actividad no encontrada"}), 404
+        comentarios = [
+            {
+                "id":     c.id,
+                "nombre": c.nombre,
+                "texto":  c.texto,
+                "fecha":  c.fecha.strftime("%d/%m/%Y %H:%M")
+            }
+            for c in actividad.comentarios
+        ]
+    finally:
+        session.close()
+    return jsonify(comentarios)
+
+
+@app.route("/api/comentarios/<int:id_actividad>", methods=["POST"])
+def api_agregar_comentario(id_actividad: int):
+    """Recibe y valida un comentario nuevo; lo guarda en BD."""
+    data = request.get_json(silent=True) or {}
+
+    nombre = sanitizar_texto(str(data.get("nombre", "")))
+    texto  = sanitizar_texto(str(data.get("texto",  "")))
+
+    errores = []
+    if len(nombre) < 3:
+        errores.append("El nombre debe tener al menos 3 caracteres.")
+    if len(nombre) > 80:
+        errores.append("El nombre no puede superar 80 caracteres.")
+    if len(texto) < 5:
+        errores.append("El comentario debe tener al menos 5 caracteres.")
+
+    if errores:
+        return jsonify({"ok": False, "errores": errores}), 400
+
+    session = get_session()
+    try:
+        actividad = session.get(Actividad, id_actividad)
+        if actividad is None:
+            return jsonify({"ok": False, "errores": ["Actividad no encontrada"]}), 404
+
+        comentario = Comentario(
+            nombre=nombre,
+            texto=texto,
+            fecha=datetime.now(),
+            actividad_id=id_actividad
+        )
+        session.add(comentario)
+        session.commit()
+        return jsonify({
+            "ok":     True,
+            "id":     comentario.id,
+            "nombre": comentario.nombre,
+            "texto":  comentario.texto,
+            "fecha":  comentario.fecha.strftime("%d/%m/%Y %H:%M")
+        }), 201
+    except Exception as e:
+        session.rollback()
+        return jsonify({"ok": False, "errores": [str(e)]}), 500
+    finally:
+        session.close()
+
+
+# ── Estadísticas ────────────────────────────────────────────────────────────────
+
+@app.route("/estadisticas")
+def estadisticas():
+    return render_template("estadisticas.html")
+
+
+@app.route("/api/stats/miembros_por_dia")
+def api_miembros_por_dia():
+    """Miembros registrados agrupados por fecha."""
+    session = get_session()
+    try:
+        stmt = (
+            select(
+                func.date(Miembro.fecha_registro).label("dia"),
+                func.count(Miembro.id).label("total")
+            )
+            .group_by(func.date(Miembro.fecha_registro))
+            .order_by(func.date(Miembro.fecha_registro))
+        )
+        rows = session.execute(stmt).all()
+        data = [{"dia": str(r.dia), "total": r.total} for r in rows]
+    finally:
+        session.close()
+    return jsonify(data)
+
+
+@app.route("/api/stats/actividades_por_tipo")
+def api_actividades_por_tipo():
+    """Total de actividades agrupadas por tipo."""
+    session = get_session()
+    try:
+        stmt = (
+            select(
+                Actividad.tipo,
+                func.count(Actividad.id).label("total")
+            )
+            .group_by(Actividad.tipo)
+        )
+        rows = session.execute(stmt).all()
+        data = [{"tipo": r.tipo, "total": r.total} for r in rows]
+    finally:
+        session.close()
+    return jsonify(data)
+
+
+@app.route("/api/stats/actividades_por_comuna")
+def api_actividades_por_comuna():
+    """Total de actividades agrupadas por la comuna del miembro."""
+    session = get_session()
+    try:
+        stmt = (
+            select(
+                Miembro.comuna,
+                func.count(Actividad.id).label("total")
+            )
+            .join(Actividad, Actividad.id_miembro == Miembro.id)
+            .where(Miembro.comuna.isnot(None))
+            .where(Miembro.comuna != "")
+            .group_by(Miembro.comuna)
+            .order_by(Miembro.comuna)
+        )
+        rows = session.execute(stmt).all()
+        data = [{"comuna": r.comuna, "total": r.total} for r in rows]
+    finally:
+        session.close()
+    return jsonify(data)
 
 
 if __name__ == "__main__":

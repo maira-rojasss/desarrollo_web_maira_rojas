@@ -469,3 +469,65 @@ nav>a:hover {
         flex-direction: column;
     }
 }
+
+/* ── Comentarios ──────────────────────────────────── */
+.comentario-item {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+}
+
+.comentario-item p {
+    margin: 6px 0 0;
+    color: #333;
+}
+
+#form-comentario div {
+    margin-bottom: 12px;
+}
+
+#form-comentario label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+#btn-comentar {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+#btn-comentar:hover {
+    background-color: #1a6fa0;
+}
+
+#btn-comentar:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+.msg-ok {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+}
+
+/* ── Estadísticas ──────────────────────────────────────────── */
+#grafico-lineas,
+#grafico-torta,
+#grafico-barras {
+    margin: 10px 0 30px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fff;
+}

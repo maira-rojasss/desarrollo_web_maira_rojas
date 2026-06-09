@@ -37,6 +37,13 @@
     </section>
 
     <section>
+        <label for="comuna">Comuna:</label>
+        <input type="text" id="comuna" name="comuna" value="{{ form_data.get('comuna', '') }}"
+            placeholder="Ej: Santiago, Providencia, Las Condes...">
+        <span class="error-campo" id="err-comuna"></span>
+    </section>
+
+    <section>
         <label for="tipo">Tipo de miembro:</label>
         <select id="tipo" name="tipo" onchange="mostrarCamposExtra()">
             <option value="">Seleccione</option>
@@ -50,7 +57,6 @@
     </section>
 
     <div id="camposExtra">
-        {# Si hubo error y hay datos guardados, repoblar los campos extra #}
         {% set tipo_prev = form_data.get('tipo', '') %}
         {% if tipo_prev == 'estudiante' %}
         <section>
@@ -112,7 +118,6 @@
                     <label><input type="checkbox" class="dia-check" value="{{ dia }}"> {{ dia }}</label>
                     {% endfor %}
                 </div>
-                <!-- campo oculto donde JS escribe el JSON de días -->
                 <input type="hidden" name="diasAct" class="dias-json">
                 <span class="error-campo act-err-dias"></span>
             </section>

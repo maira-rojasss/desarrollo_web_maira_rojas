@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Estadísticas - Sistema DCC{% endblock %}
+{% block header %}Estadísticas del Sistema{% endblock %}
+
+{% block head %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+{% endblock %}
+
+{% block content %}
+<section>
+    <h2>Miembros registrados por día</h2>
+    <div id="grafico-lineas" style="min-width:300px; height:350px;"></div>
+</section>
+
+<section>
+    <h2>Actividades por tipo</h2>
+    <div id="grafico-torta" style="min-width:300px; height:350px;"></div>
+</section>
+
+<section>
+    <h2>Actividades por comuna</h2>
+    <div id="grafico-barras" style="min-width:300px; height:350px;"></div>
+</section>
+
+<nav>
+    <a href="{{ url_for('index') }}">&#8592; Volver al inicio</a>
+</nav>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ── Gráfico 1: Líneas — Miembros por día ────────────────────────────────
+    fetch("/api/stats/miembros_por_dia")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var categorias = data.map(function (d) { return d.dia; });
+            var valores = data.map(function (d) { return d.total; });
+
+            Highcharts.chart("grafico-lineas", {
+                chart: { type: "line" },
+                title: { text: null },
+                xAxis: {
+                    categories: categorias,
+                    title: { text: "Fecha de registro" }
+                },
+                yAxis: {
+                    title: { text: "Cantidad de miembros" },
+                    allowDecimals: false,
+                    min: 0
+                },
+                series: [{
+                    name: "Miembros",
+                    data: valores,
+                    color: "#2980b9"
+                }],
+                credits: { enabled: false }
+            });
+        })
+        .catch(function () {
+            document.getElementById("grafico-lineas").textContent =
+                "Error al cargar los datos.";
+        });
+
+    // ── Gráfico 2: Torta — Actividades por tipo ─────────────────────────────
+    fetch("/api/stats/actividades_por_tipo")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var puntos = data.map(function (d) {
+                return { name: d.tipo.charAt(0).toUpperCase() + d.tipo.slice(1), y: d.total };
+            });
+
+            Highcharts.chart("grafico-torta", {
+                chart: { type: "pie" },
+                title: { text: null },
+                tooltip: {
+                    pointFormat: "<b>{point.percentage:.1f}%</b> ({point.y})"
+                },
+                series: [{
+                    name: "Actividades",
+                    colorByPoint: true,
+                    data: puntos
+                }],
+                credits: { enabled: false }
+            });
+        })
+        .catch(function () {
+            document.getElementById("grafico-torta").textContent =
+                "Error al cargar los datos.";
+        });
+
+    // ── Gráfico 3: Barras — Actividades por comuna ──────────────────────────
+    fetch("/api/stats/actividades_por_comuna")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var comunas = data.map(function (d) { return d.comuna; });
+            var totales = data.map(function (d) { return d.total; });
+
+            Highcharts.chart("grafico-barras", {
+                chart: { type: "column" },
+                title: { text: null },
+                xAxis: {
+                    categories: comunas,
+                    title: { text: "Comuna" }
+                },
+                yAxis: {
+                    title: { text: "Total de actividades" },
+                    allowDecimals: false,
+                    min: 0
+                },
+                series: [{
+                    name: "Actividades",
+                    data: totales,
+                    color: "#27ae60"
+                }],
+                credits: { enabled: false }
+            });
+        })
+        .catch(function () {
+            document.getElementById("grafico-barras").textContent =
+                "Error al cargar los datos.";
+        });
+</script>
+{% endblock %}

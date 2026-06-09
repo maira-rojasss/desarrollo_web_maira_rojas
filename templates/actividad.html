@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ actividad.nombre }} - DCC{% endblock %}
+{% block header %}Detalle de Actividad{% endblock %}
+
+{% block content %}
+<div class="detalle-container">
+
+    <!-- Datos de la actividad -->
+    <section class="detalle-seccion">
+        <h2>{{ actividad.nombre }}
+            <span class="badge badge-act">{{ actividad.tipo | capitalize }}</span>
+        </h2>
+        <table class="tabla-detalle">
+            <tr>
+                <th>Miembro</th>
+                <td><a href="{{ url_for('detalle_miembro', id_miembro=miembro.id) }}">{{ miembro.nombre }}</a></td>
+            </tr>
+            <tr>
+                <th>Días</th>
+                <td>{{ actividad.dias }}</td>
+            </tr>
+            <tr>
+                <th>Horario</th>
+                <td>{{ actividad.horario }}</td>
+            </tr>
+            {% if actividad.link %}
+            <tr>
+                <th>Enlace</th>
+                <td><a href="{{ actividad.link }}" target="_blank" rel="noopener">{{ actividad.link }}</a></td>
+            </tr>
+            {% endif %}
+        </table>
+    </section>
+
+    <!-- Formulario de comentario -->
+    <section class="detalle-seccion" id="seccion-comentario">
+        <h3>Agregar comentario</h3>
+
+        <div id="errores-comentario" class="errores" style="display:none;"></div>
+        <div id="ok-comentario" class="msg-ok" style="display:none;"></div>
+
+        <div id="form-comentario">
+            <div>
+                <label for="nombre-com">Nombre del comentarista:</label>
+                <input type="text" id="nombre-com" name="nombre" minlength="3" maxlength="80" required
+                    placeholder="Mínimo 3 caracteres">
+                <span class="error-campo" id="err-nombre-com"></span>
+            </div>
+
+            <div>
+                <label for="texto-com">Comentario:</label>
+                <textarea id="texto-com" name="texto" rows="4" cols="50" required
+                    placeholder="Mínimo 5 caracteres"></textarea>
+                <span class="error-campo" id="err-texto-com"></span>
+            </div>
+
+            <button type="button" id="btn-comentar" onclick="enviarComentario()">
+                Agregar comentario
+            </button>
+        </div>
+    </section>
+
+    <!-- Listado de comentarios -->
+    <section class="detalle-seccion" id="seccion-lista-comentarios">
+        <h3>Comentarios</h3>
+        <div id="lista-comentarios">
+            <p id="cargando-comentarios">Cargando comentarios...</p>
+        </div>
+    </section>
+
+</div>
+
+<nav>
+    <a href="{{ url_for('detalle_miembro', id_miembro=miembro.id) }}">&#8592; Volver al miembro</a>
+    &nbsp;|&nbsp;
+    <a href="{{ url_for('index') }}">Inicio</a>
+</nav>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var ACTIVIDAD_ID = {{ actividad.id }};
+
+    // ── Cargar comentarios existentes ──────────────────────────────────────
+    function cargarComentarios() {
+        fetch("/api/comentarios/" + ACTIVIDAD_ID)
+            .then(function (r) { return r.json(); })
+            .then(function (lista) {
+                var contenedor = document.getElementById("lista-comentarios");
+                if (lista.length === 0) {
+                    contenedor.innerHTML = "<p>No hay comentarios aún. ¡Sé el primero!</p>";
+                    return;
+                }
+                var html = "";
+                lista.forEach(function (c) {
+                    html += "<div class='comentario-item'>" +
+                        "<strong>" + escapeHtml(c.nombre) + "</strong>" +
+                        " <small class='fecha-reg'>" + c.fecha + "</small>" +
+                        "<p>" + escapeHtml(c.texto) + "</p>" +
+                        "</div>";
+                });
+                contenedor.innerHTML = html;
+            })
+            .catch(function () {
+                document.getElementById("lista-comentarios").innerHTML =
+                    "<p>Error al cargar comentarios.</p>";
+            });
+    }
+
+    // ── Validación en cliente y envío de comentario ────────────────────────
+    function enviarComentario() {
+        var nombre = document.getElementById("nombre-com").value.trim();
+        var texto = document.getElementById("texto-com").value.trim();
+
+        // Limpiar errores anteriores
+        document.getElementById("err-nombre-com").textContent = "";
+        document.getElementById("err-texto-com").textContent = "";
+        document.getElementById("errores-comentario").style.display = "none";
+        document.getElementById("ok-comentario").style.display = "none";
+
+        // Validación cliente
+        var ok = true;
+        if (nombre.length < 3) {
+            document.getElementById("err-nombre-com").textContent =
+                "El nombre debe tener al menos 3 caracteres.";
+            ok = false;
+        } else if (nombre.length > 80) {
+            document.getElementById("err-nombre-com").textContent =
+                "El nombre no puede superar 80 caracteres.";
+            ok = false;
+        }
+        if (texto.length < 5) {
+            document.getElementById("err-texto-com").textContent =
+                "El comentario debe tener al menos 5 caracteres.";
+            ok = false;
+        }
+        if (!ok) return;
+
+        // Envío asíncrono
+        document.getElementById("btn-comentar").disabled = true;
+
+        fetch("/api/comentarios/" + ACTIVIDAD_ID, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre: nombre, texto: texto })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+            .then(function (res) {
+                if (res.data.ok) {
+                    // Limpiar formulario
+                    document.getElementById("nombre-com").value = "";
+                    document.getElementById("texto-com").value = "";
+                    // Mostrar éxito y recargar comentarios
+                    var msgOk = document.getElementById("ok-comentario");
+                    msgOk.textContent = "Comentario agregado correctamente.";
+                    msgOk.style.display = "block";
+                    cargarComentarios();
+                } else {
+                    var div = document.getElementById("errores-comentario");
+                    div.innerHTML = "<ul>" +
+                        res.data.errores.map(function (e) { return "<li>" + escapeHtml(e) + "</li>"; }).join("") +
+                        "</ul>";
+                    div.style.display = "block";
+                }
+            })
+            .catch(function () {
+                var div = document.getElementById("errores-comentario");
+                div.innerHTML = "<ul><li>Error de conexión. Intente nuevamente.</li></ul>";
+                div.style.display = "block";
+            })
+            .finally(function () {
+                document.getElementById("btn-comentar").disabled = false;
+            });
+    }
+
+    // ── Utilidad anti-XSS ──────────────────────────────────────────────────
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    // Cargar al iniciar la página
+    cargarComentarios();
+</script>
+{% endblock %}

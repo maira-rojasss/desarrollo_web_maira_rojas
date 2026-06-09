@@ -32,6 +32,12 @@
                 <td>{{ miembro.detalle }}</td>
             </tr>
             {% endif %}
+            {% if miembro.comuna %}
+            <tr>
+                <th>Comuna</th>
+                <td>{{ miembro.comuna }}</td>
+            </tr>
+            {% endif %}
             <tr>
                 <th>Fecha registro</th>
                 <td>{{ miembro.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</td>
@@ -61,7 +67,9 @@
         {% if actividades %}
         {% for a in actividades %}
         <div class="miembro-card">
-            <strong>{{ a.nombre }}</strong>
+            <strong>
+                <a href="{{ url_for('detalle_actividad', id_actividad=a.id) }}">{{ a.nombre }}</a>
+            </strong>
             <span class="badge badge-act">{{ a.tipo | capitalize }}</span><br>
             <small>Días: {{ a.dias }}</small><br>
             <small>Horario: {{ a.horario }}</small><br>

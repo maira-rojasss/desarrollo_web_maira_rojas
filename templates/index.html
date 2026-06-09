@@ -13,7 +13,7 @@
     <nav class="menu">
         <a href="{{ url_for('registro') }}" class="btn">Registrar miembro y actividades</a>
         <a href="{{ url_for('listado') }}" class="btn">Ver listado de miembros</a>
-        <a href="#estadisticas" class="btn btn-disabled">Estadísticas <small>(próximamente)</small></a>
+        <a href="{{ url_for('estadisticas') }}" class="btn">Estadísticas</a>
     </nav>
 </section>
 
@@ -31,6 +31,9 @@
         </small><br>
         {% elif m.detalle %}
         <small>{{ m.detalle }}</small><br>
+        {% endif %}
+        {% if m.comuna %}
+        <small>{{ m.comuna }}</small><br>
         {% endif %}
         <small class="fecha-reg">Registrado: {{ m.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</small>
     </div>
