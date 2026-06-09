@@ -89,7 +89,7 @@
             .then(function (lista) {
                 var contenedor = document.getElementById("lista-comentarios");
                 if (lista.length === 0) {
-                    contenedor.innerHTML = "<p>No hay comentarios aún. ¡Sé el primero!</p>";
+                    contenedor.innerHTML = "<p>No hay comentarios aún. </p>";
                     return;
                 }
                 var html = "";
@@ -130,9 +130,9 @@
                 "El nombre no puede superar 80 caracteres.";
             ok = false;
         }
-        if (texto.length < 5) {
+        if (texto.length < 3) {
             document.getElementById("err-texto-com").textContent =
-                "El comentario debe tener al menos 5 caracteres.";
+                "El comentario debe tener al menos 3 caracteres.";
             ok = false;
         }
         if (!ok) return;
