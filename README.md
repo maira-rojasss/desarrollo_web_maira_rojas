@@ -43,7 +43,7 @@ buscador/
     └── resources/
         ├── application.properties
         ├── static/css/
-        │   └── styles.css        # Mismo estilo de la Tarea 3
+        │   └── styles.css        
         └── templates/
             └── buscador.html
 ```
